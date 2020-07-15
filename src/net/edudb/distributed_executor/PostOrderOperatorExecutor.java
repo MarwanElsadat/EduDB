@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package net.edudb.distributed_executor;
 
 import net.edudb.distributed_operator.CreateTableOperator;
+import net.edudb.master.MasterWriter;
+import net.edudb.response.Response;
 
 /**
  * Executes a query tree in a post-order strategy. If a tree node is not a leaf,

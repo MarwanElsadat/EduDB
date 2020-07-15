@@ -59,9 +59,11 @@ public class UpdateExecutor implements OperatorExecutionChain {
                 int id = ((IntegerType) shard.get("id")).getInteger();
                 String deleteStatement = statement.toString();
 
-                if (id != 0)
-                    deleteStatement = deleteStatement.replace(tableName, tableName + id);
+                if (id != 0) {
 
+                    deleteStatement = deleteStatement.replace(tableName, tableName + id);
+                    MasterWriter.getInstance().write(new Response("updated shard id:"+ id));
+                }
                 final int index = i;
                 final String finalDeleteStatement = deleteStatement;
 

@@ -37,6 +37,9 @@ public class CreateShardExecutor implements MasterExecutorChain {
     private MasterExecutorChain nextElement;
     private String regex = "\\A(?:(?i)create)\\s+(?:(?i)shard)\\s+\\((\\w+), (\\w+), (\\w+), (\\w+), (\\w+)\\)\\s*;?\\z";
 
+    //                                replicate            shard     (table, srcServer, srcPort,   id, dstServer, dstPort)
+    private String cregex = "\\A(?:(?i)create)\\s+(?:(?i)cshard)\\s+\\((\\w+), (\\w+), (\\w+), (\\w+), (\\w+), (\\w+)\\)\\s*;?\\z";
+
     @Override
     public void setNextElementInChain(MasterExecutorChain chainElement) {
         this.nextElement = chainElement;
@@ -90,9 +93,6 @@ public class CreateShardExecutor implements MasterExecutorChain {
                                     + ":" + workerPort));
                             return;
                         }
-
-
-
 
                         metaDAO.writeShard(workerHost, workerPort, tableName, 0, "null", "null");
                         workerDAO.createTable(tableName, table.get("metadata").toString());
@@ -173,11 +173,25 @@ public class CreateShardExecutor implements MasterExecutorChain {
                 }
 
             }
-        }
-        else {
-            nextElement.execute(string);
-        }
+        }else {
 
+
+/**
+ * Replicates shards
+ *
+ * @author Marwan karim
+ */
+
+
+            if (string.toLowerCase().startsWith("create cshard")) {
+
+                ReplicateShard rep = new ReplicateShard();
+                rep.execute(string);
+
+            } else {
+                nextElement.execute(string);
+            }
+        }
     }
 
 }

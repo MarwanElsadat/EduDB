@@ -38,6 +38,7 @@ public class SelectExecutor implements OperatorExecutionChain {
 
     public void execute(DistributedOperator operator) {
         if (operator instanceof SelectOperator) {
+            MasterWriter.getInstance().write(new Response("aaa"));
             SelectOperator select = (SelectOperator) operator;
             SelectOperatorParameter parameter = (SelectOperatorParameter)select.getParameter();
 
@@ -48,40 +49,79 @@ public class SelectExecutor implements OperatorExecutionChain {
 
             Response[] responses = new Response[shards.size()];
 
-            for (int i = 0; i < responses.length; i++) {
-                Hashtable<String, DataType> shard = shards.get(i);
-                String workerAddress = shard.get("host").toString() + ":" + shard.get("port").toString();
-                WorkerDAO workerDAO = WorkersManager.getInstance().getWorkers().get(workerAddress);
+            //added for replication
 
-                if (workerDAO == null) {
-                    MasterWriter.getInstance().write(new Response("Worker at '" + workerAddress + "' is not available"));
-                    return;
+            ArrayList<Hashtable<String, DataType>> checkedShards = new ArrayList<>();
+            int orgShards = 0;
+            //responses.length
+            for (int i = 0; i < responses.length; i++) {
+                MasterWriter.getInstance().write(new Response("for loop 1st"+i));
+
+                Hashtable<String, DataType> shard = shards.get(i);
+
+
+                //added for replication
+                boolean sameMin = false;
+                boolean sameMax = false;
+
+                if (checkedShards.size() > 0) {
+                    for (int j = 0; j < checkedShards.size(); j++) {
+                        Hashtable<String, DataType> checkedShard = checkedShards.get(j);
+                        sameMin = checkedShard.get("min_value").toString().equals(shard.get("min_value"));
+                        sameMax = checkedShard.get("max_value").toString().equals(shard.get("max_value"));
+                    }
                 }
 
-                String tableName = parameter.getTableName();
-                int id = ((IntegerType) shard.get("id")).getInteger();
-                String insertStatement = statement.toString();
+                if (!(sameMin && sameMax)) {
+                    MasterWriter.getInstance().write(new Response("not a replica"+ i));
+                    checkedShards.add(shard);
+//end of added part for replication
 
-                if (id != 0)
-                    insertStatement = insertStatement.replace(tableName, tableName + id);
+                    String workerAddress = shard.get("host").toString() + ":" + shard.get("port").toString();
 
-                final int index = i;
-                final String finalDeleteStatement = insertStatement;
+                    MasterWriter.getInstance().write(new Response("received address"+i));
 
-                new Thread(() -> responses[index] = workerDAO.insert(finalDeleteStatement)).start();
+                    WorkerDAO workerDAO = WorkersManager.getInstance().getWorkers().get(workerAddress);
+
+                    if (workerDAO == null) {
+                        MasterWriter.getInstance().write(new Response("Worker at '" + workerAddress + "' is not available"));
+                        return;
+                    }
+
+                    String tableName = parameter.getTableName();
+                    MasterWriter.getInstance().write(new Response("got table name"+i));
+
+                    int id = ((IntegerType) shard.get("id")).getInteger();
+                    MasterWriter.getInstance().write(new Response("got id"+i));
+
+                    String insertStatement = statement.toString();
+                    MasterWriter.getInstance().write(new Response("got insert statement"+i));
+
+                    if (id != 0) {
+                        insertStatement = insertStatement.replace(tableName, tableName + id);
+                    }
+
+                    final int index = i;
+                    final String finalDeleteStatement = insertStatement;
+
+                    new Thread(() -> responses[index] = workerDAO.insert(finalDeleteStatement)).start();
+                    MasterWriter.getInstance().write(new Response("got thread"+i));
+                    orgShards++;
+                }
             }
-
-            int index = 0;
+            /*int index = 0;
             int responsesReceived = 0;
+//edit responses.length
+            while (responsesReceived != orgShards) {
+                MasterWriter.getInstance().write(new Response("while"));
 
-            while (responsesReceived != responses.length) {
                 if (responses[index] == null)
                     responsesReceived = 0;
                 else
                     ++responsesReceived;
-
-                index = (index + 1) % responses.length;
-            }
+//edit responses.length
+                index = (index + orgShards) % 2;
+            }*/
 
             /**
              *
@@ -91,9 +131,11 @@ public class SelectExecutor implements OperatorExecutionChain {
             }
             else {
                 ArrayList<Record> concatenatedResult = new ArrayList<>();
-
-                for (int i = 0; i < responses.length; i++) {
+//edit responses.length
+                for (int i = 0; i < orgShards; i++) {
                     concatenatedResult.addAll(responses[i].getRecords());
+                    MasterWriter.getInstance().write(new Response("concatinating"));
+
                 }
 
                 MasterWriter.getInstance().write(new Response("relation", concatenatedResult, null));

@@ -61,6 +61,7 @@ public class InsertExecutor implements OperatorExecutionChain {
 
                 if (id != 0) {
                     insertStatement = insertStatement.replace(tableName, tableName + id);
+                    MasterWriter.getInstance().write(new Response("iserted in shard id:"+ id));
                 }
 
                 final int index = i;
