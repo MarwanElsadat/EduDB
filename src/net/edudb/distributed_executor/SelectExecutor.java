@@ -29,6 +29,10 @@ import java.util.Hashtable;
  * Selects records from all necessary shards and concatenates the results
  *
  * @author Fady Sameh
+ *
+ * Updated for shard replication by
+ * @author Marwan karim
+ *
  */
 public class SelectExecutor implements OperatorExecutionChain {
 
@@ -150,7 +154,7 @@ public class SelectExecutor implements OperatorExecutionChain {
 //edit responses.length
                     index = (index + 1) % responses.length;
                     MasterWriter.getInstance().write(new Response("index:" + index));
-                MasterWriter.getInstance().write(new Response("resp:" + responsesReceived));
+                    MasterWriter.getInstance().write(new Response("resp:" + responsesReceived));
 
                 //}
             }
