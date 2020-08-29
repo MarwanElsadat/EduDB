@@ -185,7 +185,7 @@ public class ReplicateShard implements MasterExecutorChain{
                     return;
                 }
 
-                // we use the same id of the original shard
+                // we store the shard as a new shard identical to normal shards
                 int shardId = ((IntegerType)table.get("shard_number")).getInteger() + 1;
 
                 metaDAO.writeShard(dstWorkerHost, dstWorkerPort, tableName, shardId, shardMin, shardMax);

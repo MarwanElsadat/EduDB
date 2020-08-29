@@ -79,8 +79,8 @@ public class SelectExecutor implements OperatorExecutionChain {
                         //MasterWriter.getInstance().write(new Response("min"+shard.get("min_value")));
                         //MasterWriter.getInstance().write(new Response("checkedmin"+checkedShard.get("min_value")));
 
-                        cmp1 +=(shard.get("min_value").toString());
-                        cmp2 +=(checkedShard.get("min_value").toString());
+                        cmp1 =(shard.get("min_value").toString());
+                        cmp2 =(checkedShard.get("min_value").toString());
 
                         if(cmp1.equals(cmp2) ){
                             sameMin = true;
@@ -88,16 +88,11 @@ public class SelectExecutor implements OperatorExecutionChain {
                             MasterWriter.getInstance().write(new Response("replicaaaaaa"+sameMin));
                             break;
                         }
-
                     }
                 }
 
-                if(!sameMin){
-                    str.add(orgShards);
-                    orgShards++;
-                }
 
-                checkedShards.add(shard);
+
                 //end of added part for replication
 
 
@@ -124,6 +119,14 @@ public class SelectExecutor implements OperatorExecutionChain {
 
                         new Thread(() -> responses[index] = workerDAO.insert(finalDeleteStatement)).start();
 
+                        if(!sameMin){
+                            MasterWriter.getInstance().write(new Response("!samemin"+i));
+                            str.add(i);
+                            orgShards++;
+                            checkedShards.add(shard);
+                        }
+
+
                         //added for shard replication
                         MasterWriter.getInstance().write(new Response("got thread" + i));
                         //str.add(orgShards);
@@ -133,30 +136,39 @@ public class SelectExecutor implements OperatorExecutionChain {
                     //}
             }
 
+            for(int i=0; i < str.size(); i++){
+                MasterWriter.getInstance().write(new Response("str: "+ str.get(i)));
+
+            }
+
+
             int index = 0;
             int responsesReceived = 0;
 //edit responses.length
 
             while (responsesReceived != (responses.length-replicas)) {
 
-                //if(str.contains(index)) {
 
-                    if (responses[index] == null) {
-                        responsesReceived = 0;
-                        str2.clear();
-                        MasterWriter.getInstance().write(new Response("reset responses"));
+                if (responses[index] == null) {
+                    responsesReceived = 0;
+                    str2.clear();
+                    //MasterWriter.getInstance().write(new Response("reset responses"));
 
-                    } else{
+                } else {
+                    //if(str.contains(index)) {
                         ++responsesReceived;
                         str2.add(index);
-                    }
+                      //  MasterWriter.getInstance().write(new Response("str"));
+                    //}
+                }
+
 
 //edit responses.length
                     index = (index + 1) % responses.length;
-                    MasterWriter.getInstance().write(new Response("index:" + index));
-                    MasterWriter.getInstance().write(new Response("resp:" + responsesReceived));
+                    //MasterWriter.getInstance().write(new Response("index:" + index));
+                    //MasterWriter.getInstance().write(new Response("resp:" + responsesReceived));
 
-                //}
+
             }
 
 
@@ -179,7 +191,7 @@ public class SelectExecutor implements OperatorExecutionChain {
                     }
                 }
 
-                MasterWriter.getInstance().write(new Response("relation", concatenatedResult, null));
+                    MasterWriter.getInstance().write(new Response("relation", concatenatedResult, null));
 
             }
         }
