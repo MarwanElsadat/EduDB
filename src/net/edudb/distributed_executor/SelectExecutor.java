@@ -131,8 +131,6 @@ public class SelectExecutor implements OperatorExecutionChain {
                         MasterWriter.getInstance().write(new Response("got thread" + i));
                         //str.add(orgShards);
                         //orgShards++;
-
-
                     //}
             }
 
@@ -141,13 +139,11 @@ public class SelectExecutor implements OperatorExecutionChain {
 
             }
 
-
             int index = 0;
             int responsesReceived = 0;
 //edit responses.length
 
             while (responsesReceived != (responses.length-replicas)) {
-
 
                 if (responses[index] == null) {
                     responsesReceived = 0;
@@ -155,19 +151,18 @@ public class SelectExecutor implements OperatorExecutionChain {
                     //MasterWriter.getInstance().write(new Response("reset responses"));
 
                 } else {
-                    //if(str.contains(index)) {
+                    //if(index==1 || index ==3) {
+                        //if(minlist.contains(responses[index])) {
                         ++responsesReceived;
                         str2.add(index);
-                      //  MasterWriter.getInstance().write(new Response("str"));
+                        //MasterWriter.getInstance().write(new Response("index:" + index));
+                        //}
                     //}
                 }
-
-
 //edit responses.length
                     index = (index + 1) % responses.length;
                     //MasterWriter.getInstance().write(new Response("index:" + index));
                     //MasterWriter.getInstance().write(new Response("resp:" + responsesReceived));
-
 
             }
 
@@ -190,9 +185,7 @@ public class SelectExecutor implements OperatorExecutionChain {
                         //MasterWriter.getInstance().write(new Response("passed"));
                     }
                 }
-
                     MasterWriter.getInstance().write(new Response("relation", concatenatedResult, null));
-
             }
         }
         else {
