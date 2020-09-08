@@ -85,7 +85,7 @@ public class SelectExecutor implements OperatorExecutionChain {
                         if(cmp1.equals(cmp2) ){
                             sameMin = true;
                             replicas++;
-                            MasterWriter.getInstance().write(new Response("replicaaaaaa"+sameMin));
+                            //MasterWriter.getInstance().write(new Response("replicaaaaaa"+sameMin));
                             break;
                         }
                     }
@@ -120,7 +120,7 @@ public class SelectExecutor implements OperatorExecutionChain {
                         new Thread(() -> responses[index] = workerDAO.insert(finalDeleteStatement)).start();
 
                         if(!sameMin){
-                            MasterWriter.getInstance().write(new Response("!samemin"+i));
+                            //MasterWriter.getInstance().write(new Response("!samemin"+i));
                             str.add(i);
                             orgShards++;
                             checkedShards.add(shard);
@@ -128,14 +128,14 @@ public class SelectExecutor implements OperatorExecutionChain {
 
 
                         //added for shard replication
-                        MasterWriter.getInstance().write(new Response("got thread" + i));
+                        //MasterWriter.getInstance().write(new Response("got thread" + i));
                         //str.add(orgShards);
                         //orgShards++;
                     //}
             }
 
             for(int i=0; i < str.size(); i++){
-                MasterWriter.getInstance().write(new Response("str: "+ str.get(i)));
+                //MasterWriter.getInstance().write(new Response("str: "+ str.get(i)));
 
             }
 
@@ -180,7 +180,7 @@ public class SelectExecutor implements OperatorExecutionChain {
 
                 for (int i = 0; i < responses.length; i++) {
                     if(str2.contains(i)){
-                        MasterWriter.getInstance().write(new Response("pre-passed"+i));
+                        //MasterWriter.getInstance().write(new Response("pre-passed"+i));
                         concatenatedResult.addAll(responses[i].getRecords());
                         //MasterWriter.getInstance().write(new Response("passed"));
                     }
