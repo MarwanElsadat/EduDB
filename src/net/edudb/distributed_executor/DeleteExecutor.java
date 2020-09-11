@@ -61,7 +61,7 @@ public class DeleteExecutor implements OperatorExecutionChain {
 
                 if (id != 0){
                     deleteStatement = deleteStatement.replace(tableName, tableName + id);
-                    MasterWriter.getInstance().write(new Response("deleted from shard id:"+ id));
+                    MasterWriter.getInstance().write(new Response("deleted from shard: "+id+" at server:" + workerAddress));
                 }
 
                 final int index = i;

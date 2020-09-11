@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
 /**
         * Replicates shards
         *
-        * @author Marwan karim
+        * @author Marwan karim elsadat
         */
 
 public class ReplicateShard implements MasterExecutorChain{
@@ -119,8 +119,6 @@ public class ReplicateShard implements MasterExecutorChain{
                 String distributionColumn = ((VarCharType) table.get("distribution_column")).getString();
                 MetaDAO metaDAO = MetaManager.getInstance();
 
-                DataTypeFactory dataTypeFactory = new DataTypeFactory();
-
 
                 for (Hashtable<String, DataType> shard : MetadataBuffer.getInstance().getShards().values()) {
 
@@ -156,13 +154,7 @@ public class ReplicateShard implements MasterExecutorChain{
                             if(s.equals(dstWorkerHost+dstWorkerPort)){
                                 replicaExists = true;
                             }
-
                         }
-
-
-
-
-
                     }
                 }
 
@@ -180,17 +172,18 @@ public class ReplicateShard implements MasterExecutorChain{
                 }
                 if (replicaExists) {
                     MasterWriter.getInstance().write(new Response(
-                            "shard replica already exists at" + dstWorkerHost +":"+dstWorkerPort
+                            "shard already exists at" + dstWorkerHost +":"+dstWorkerPort
                     ));
                     return;
                 }
 
-                // we store the shard as a new shard identical to normal shards
+                // we store the shard as a new shard identical to the original shards
                 int shardId = ((IntegerType)table.get("shard_number")).getInteger() + 1;
+                WorkerDAO workerDAOdst = WorkersManager.getInstance().getWorkers().get(dstWorkerHost + ":" + dstWorkerPort);
 
-                metaDAO.writeShard(dstWorkerHost, dstWorkerPort, tableName, shardId, shardMin, shardMax);
-                metaDAO.editTable(tableName, null, null, shardId);
-                workerDAO.createTable(tableName + shardId, table.get("metadata").toString());
+                metaDAO.writeShard(dstWorkerHost, dstWorkerPort, tableName, id, shardMin, shardMax);
+                metaDAO.editTable(tableName, null, null, id);
+                workerDAOdst.createTable(tableName + id, table.get("metadata").toString());
 
 
 
